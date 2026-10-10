@@ -1,0 +1,22 @@
+{
+  "result": "passed",
+  "verifiedAtUtc": "2026-10-10T16:40:02.4152738Z",
+  "scope": "Actual compiled Inno installer/uninstaller in a workspace directory and unique HKCU test registration. Shared Adobe installation and Microsoft runtime were not changed. Fixture host names have a test-only prefix.",
+  "setupSHA256": "165037B608F57210383F15516C52211E7B02C0D308301FA2703212DEB3D02725",
+  "installerSourceSHA256": "2428065B30CF955E04980FF14F3DD595C52DE3727EEF2078FF2EBAE54B5F2F64",
+  "pluginSHA256": "E16C26CE9E930517FA89F7E586AA24B7722CE9252202B8D5EC1C51CAC1491C4A",
+  "linkKindTested": "HardLink",
+  "symbolicLinkTested": false,
+  "checks": [
+    "Fresh install: exact plugin hash, independent copy, uninstaller and HKCU Installed apps entry",
+    "Injected failure after backup restores the prior regular file",
+    "Upgrade replaces the old file and keeps one uninstaller",
+    "Existing recovery backup blocks replacement and remains unchanged",
+    "A directory at the plugin filename is refused without deleting its contents",
+    "Injected failure restores a HardLink without modifying its source",
+    "HardLink upgrade installs an independent copy and preserves the source",
+    "Install and uninstall block all four disposable host processes using real Windows snapshots",
+    "Uninstall removes the link and registration, preserving its source and unrelated files",
+    "Reinstall after uninstall succeeds; final fixture registration removed"
+  ]
+}

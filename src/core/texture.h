@@ -11,7 +11,9 @@ struct TextureParams {
     float originX = 0, originY = 0;
     uint32_t seed = 731, frame = 0;
     int linear = 0, particle = 0;
+    float mix = 1.f; // final straight-RGB mix; alpha is unchanged
 };
+static_assert(sizeof(TextureParams)==76,"CUDA parameter layout changed");
 
 #ifdef TEXTURE_EXPORTS
 #define FT_API extern "C" __declspec(dllexport)

@@ -1,0 +1,33 @@
+{
+  "binary_sha256": "E16C26CE9E930517FA89F7E586AA24B7722CE9252202B8D5EC1C51CAC1491C4A",
+  "checked_at_utc": "2026-10-10T16:08:00.205910+00:00",
+  "scope": "Actual AE 2026, synthetic 640x360/50fps, 32-bit float PSD. Not Premiere, playback, ROI or MFR qualification.",
+  "comparisons": {
+    "legacy fast": {
+      "maximum_error": 3.5762786865234375e-07,
+      "tolerance": 1e-06
+    },
+    "legacy fast-next": {
+      "maximum_error": 3.5762786865234375e-07,
+      "tolerance": 1e-06
+    },
+    "legacy simulated": {
+      "maximum_error": 3.5762786865234375e-07,
+      "tolerance": 1e-06
+    },
+    "strength zero": {
+      "maximum_error": 0,
+      "exact": true
+    },
+    "strength half": {
+      "maximum_error": 2.384185791015625e-07,
+      "tolerance": 5e-06,
+      "export_conversion": "Gamma 2.4 linearized PSD, approximately implemented by Adobe color conversion; independently checked against known synthetic source RGB within 2e-6."
+    }
+  },
+  "legacy_parameter_animation_migration": "passed actual script assertions",
+  "new_instance_simulated_default": "passed actual script assertion",
+  "ui_interaction": "Passed recorded actual AE New look, locked variation, complete Undo and pattern-only change.",
+  "actual_save_reopen": "passed: all numeric settings, model, locks and seeds",
+  "result": "passed"
+}

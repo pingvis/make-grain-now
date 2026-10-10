@@ -7,9 +7,9 @@ BUILD=Path(os.environ.get('MGN_BUILD_DIR',str(ROOT/'build'))).resolve()
 OUTPUTS=Path(os.environ.get('MGN_OUTPUT_DIR',str(ROOT/'tests/outputs'))).resolve()
 OUTPUTS.mkdir(parents=True,exist_ok=True)
 class Params(C.Structure):
-    _fields_=[(n,C.c_float) for n in ['grain','size','color','halation','halRadius','bloom','bloomRadius','threshold','softness','shadows','highlights','scale','originX','originY']]+[(n,C.c_uint32) for n in ['seed','frame']]+[(n,C.c_int) for n in ['linear','particle']]
+    _fields_=[(n,C.c_float) for n in ['grain','size','color','halation','halRadius','bloom','bloomRadius','threshold','softness','shadows','highlights','scale','originX','originY']]+[(n,C.c_uint32) for n in ['seed','frame']]+[(n,C.c_int) for n in ['linear','particle']]+[('mix',C.c_float)]
     def __init__(self,**kw):
-        values=dict(grain=.025,size=1.2,color=.15,halation=.15,halRadius=8,bloom=.08,bloomRadius=32,threshold=.7,softness=.2,shadows=.7,highlights=.35,scale=1,seed=731,frame=0,linear=0,particle=0)
+        values=dict(grain=.025,size=1.2,color=.15,halation=.15,halRadius=8,bloom=.08,bloomRadius=32,threshold=.7,softness=.2,shadows=.7,highlights=.35,scale=1,seed=731,frame=0,linear=0,particle=0,mix=1)
         values.update(kw);super().__init__(**values)
 dll=C.CDLL(str(BUILD/'Release/texture_core.dll'))
 dll.ft_render.argtypes=[C.c_void_p,C.c_void_p,C.c_int,C.c_int,C.POINTER(Params),C.POINTER(C.c_float)]
@@ -23,6 +23,15 @@ def main():
     a=rng.uniform(-.2,2,(127,191,4)).astype('float32');a[:,:,3]=rng.uniform(0,1,a.shape[:2]);a[:9,:,3]=0
     b,_=render(a,Params(grain=0,halation=0,bloom=0));assert np.array_equal(a,b),'bypass changes pixels'
     b,_=render(a,Params());c,_=render(a,Params());assert np.array_equal(b,c),'repeat mismatch'
+    bypass,_=render(a,Params(mix=0));assert np.array_equal(a,bypass),'zero strength is not exact bypass'
+    for particle in (0,1):
+        for linear in (0,1):
+            full,_=render(a,Params(particle=particle,linear=linear))
+            half,_=render(a,Params(particle=particle,linear=linear,mix=.5))
+            expected=a+(full-a)*np.float32(.5)
+            expected[a[:,:,3]<=0]=a[a[:,:,3]<=0]
+            assert np.allclose(half,expected,rtol=0,atol=5e-7),'strength is not a final RGB mix'
+            assert np.array_equal(half[:,:,3],a[:,:,3]),'strength changed alpha'
     assert np.array_equal(a[:,:,3],b[:,:,3]),'alpha changed'
     assert np.array_equal(a[:9],b[:9]),'hidden RGB changed'
     assert np.isfinite(b).all(),'nonfinite output';assert b[:,:,0].max()>1,'HDR clipped'

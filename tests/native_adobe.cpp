@@ -24,6 +24,7 @@
 using Entry=PF_Err(*)(PF_Cmd,PF_InData*,PF_OutData*,PF_ParamDef*[],PF_LayerDef*,void*);
 static void require(bool ok,const char* message){if(!ok)throw std::runtime_error(message);}
 static std::vector<PF_ParamDef> definitions(1);
+static std::vector<int> addedDiskIds(1,0);
 static int suiteRefs=0,checkedOut=0,checkedIn=0,failParam=-1,pixelCheckins=0;
 static PF_PixelFormat pixelFormat=PF_PixelFormat_ARGB128;
 static PF_WorldSuite2 worldSuite{};
@@ -53,7 +54,7 @@ static SPErr acquire(const char* name,int32,const void** p){
  ++suiteRefs;return 0;
 }
 static SPErr release(const char*,int32){--suiteRefs;return 0;}
-static PF_Err add(PF_ProgPtr,PF_ParamIndex,PF_ParamDefPtr p){definitions.push_back(*p);return 0;}
+static PF_Err add(PF_ProgPtr,PF_ParamIndex,PF_ParamDefPtr p){addedDiskIds.push_back(p->uu.id);definitions.push_back(*p);return 0;}
 static PF_Err checkout(PF_ProgPtr,PF_ParamIndex i,A_long,A_long,A_u_long,PF_ParamDef* p){
  if(i==failParam)return PF_Err_BAD_CALLBACK_PARAM;
  *p=definitions.at(i);++checkedOut;return 0;
@@ -73,6 +74,64 @@ static PF_Err deviceInfo(PF_ProgPtr,A_u_long,PF_GPUDeviceInfo* p){p->device_fram
 static PF_Err allocate(PF_ProgPtr ref,A_u_long,size_t n,void** p){require(ref==activeEffectRef,"GPU allocation used a stale selector effect reference");CUdeviceptr v=0;auto e=api->cuMemAlloc(&v,n);if(e!=CUDA_SUCCESS)return PF_Err_OUT_OF_MEMORY;allocations.insert(v);*p=(void*)v;return 0;}
 static PF_Err freeDevice(PF_ProgPtr ref,A_u_long,void* p){require(ref==activeEffectRef,"GPU free used a stale selector effect reference");require(allocations.erase((CUdeviceptr)p)==1,"GPU allocation double free");return api->cuMemFree((CUdeviceptr)p)==CUDA_SUCCESS?0:PF_Err_INTERNAL_STRUCT_DAMAGED;}
 static PF_Err gpuPixels(PF_ProgPtr,PF_EffectWorld* w,void** p){*p=w->data;return 0;}
+
+static void presetTests(Entry entry,PF_InData& in,PF_OutData& out,PF_ParamDef** params){
+ const auto initial=definitions;
+ const int style[]={MGN_GRAIN,MGN_SIZE,MGN_COLOR,MGN_HALATION,MGN_BLOOM,MGN_HAL_RADIUS,MGN_BLOOM_RADIUS,MGN_THRESHOLD,MGN_SOFTNESS,MGN_SHADOWS,MGN_HIGHLIGHTS};
+ auto restore=[&](){for(size_t i=0;i<initial.size();i++)definitions[i]=initial[i];};
+ auto changed=[&](int id){PF_UserChangedParamExtra extra{};extra.param_index=id;out.out_flags=0;require(entry(PF_Cmd_USER_CHANGED_PARAM,&in,&out,params,nullptr,&extra)==0,"Preset action failed");};
+ // These constants come from the previous shipped parameter schema, not the new map.
+ const int legacy[][2]={{MGN_PRESET,1},{MGN_RANDOMIZE,2},{MGN_GRAIN,3},{MGN_SIZE,4},{MGN_HALATION,5},{MGN_BLOOM,6},{MGN_ADVANCED,7},{MGN_COLOR,8},{MGN_HAL_RADIUS,9},{MGN_BLOOM_RADIUS,10},{MGN_THRESHOLD,11},{MGN_SOFTNESS,12},{MGN_SHADOWS,13},{MGN_HIGHLIGHTS,14},{MGN_SEED,15},{MGN_SPACE,16},{MGN_MODEL,17},{MGN_ADVANCED_END,18}};
+ std::unordered_set<int> ids;
+ for(int id:addedDiskIds)require(ids.insert(id).second,"Duplicate persistent parameter ID");
+ for(const auto& pair:legacy)require(addedDiskIds[pair[0]]==pair[1],"Saved-project parameter ID changed");
+ require(definitions[MGN_MODEL].u.pd.value==2,"New instances do not default to Simulated");
+ require(MGN_MODEL<MGN_ADVANCED&&MGN_GRAIN>MGN_ADVANCED&&MGN_BLOOM>MGN_ADVANCED,"Primary/Advanced control layout wrong");
+ require(definitions[MGN_STRENGTH].u.fs_d.value==100,"New strength changes existing appearance");
+ require(definitions[MGN_STRENGTH].flags&PF_ParamFlag_USE_VALUE_FOR_OLD_PROJECTS,"Missing old-project strength initialization");
+ require(!strcmp(definitions[MGN_MODEL].u.pd.u.namesptr,"Gaussian (fast)|Simulated (slow)"),"Grain type labels wrong");
+ for(int look=1;look<=creativePresetCount;look++){
+  const auto& p=creativePresets[look-1];float expected[]={p.grain,p.size,p.color*100,p.halation,p.bloom,p.halRadius,p.bloomRadius,p.threshold*100,p.softness*100,p.shadows*100,p.highlights*100};
+  for(float prior:{3.25f,7.75f}){
+   for(int id:style)definitions[id].u.fs_d.value=prior;
+   definitions[MGN_PRESET].u.pd.value=look;definitions[MGN_SPACE].u.pd.value=2;definitions[MGN_MODEL].u.pd.value=1;definitions[MGN_STRENGTH].u.fs_d.value=37;definitions[MGN_SEED].u.fs_d.value=123;
+   changed(MGN_PRESET);
+   for(int i=0;i<11;i++)require(std::abs(definitions[style[i]].u.fs_d.value-expected[i])<1e-5,"Look inherited prior creative settings");
+   require(definitions[MGN_SPACE].u.pd.value==2&&definitions[MGN_MODEL].u.pd.value==1&&definitions[MGN_STRENGTH].u.fs_d.value==37&&definitions[MGN_SEED].u.fs_d.value==123,"Look changed technical context, strength or seed");
+  }
+ }
+ restore();definitions[MGN_GRAIN_PRESET].u.pd.value=5;changed(MGN_GRAIN_PRESET);
+ require(definitions[MGN_COLOR].u.fs_d.value==0&&definitions[MGN_PRESET].u.pd.value==customLook,"Grain module preset did not become Custom");
+ require(definitions[MGN_HALATION].u.fs_d.value==initial[MGN_HALATION].u.fs_d.value&&definitions[MGN_BLOOM].u.fs_d.value==initial[MGN_BLOOM].u.fs_d.value,"Grain preset altered glow");
+ definitions[MGN_SIZE].u.fs_d.value=2;changed(MGN_SIZE);require(definitions[MGN_GRAIN_PRESET].u.pd.value==1,"Manual edit retains stale module label");
+ definitions[MGN_HAL_PRESET].u.pd.value=2;changed(MGN_HAL_PRESET);require(definitions[MGN_HALATION].u.fs_d.value==0,"Halation Off preset failed");
+ definitions[MGN_BLOOM_PRESET].u.pd.value=5;changed(MGN_BLOOM_PRESET);require(definitions[MGN_BLOOM].u.fs_d.value==35&&definitions[MGN_BLOOM_RADIUS].u.fs_d.value==80,"Dreamy bloom preset failed");
+ restore();changed(MGN_PATTERN);
+ require(definitions[MGN_SEED].u.fs_d.value!=initial[MGN_SEED].u.fs_d.value,"New pattern did not change seed");
+ for(int id:style)require(definitions[id].u.fs_d.value==initial[id].u.fs_d.value,"New pattern altered look");
+ require(definitions[MGN_PRESET].u.pd.value==initial[MGN_PRESET].u.pd.value,"New pattern changed preset label");
+ restore();definitions[MGN_LOCK_GRAIN].u.bd.value=definitions[MGN_LOCK_HAL].u.bd.value=TRUE;
+ changed(MGN_VARIATION);auto variation=definitions;
+ const int locked[]={MGN_GRAIN,MGN_SIZE,MGN_COLOR,MGN_SHADOWS,MGN_HIGHLIGHTS,MGN_SEED,MGN_HALATION,MGN_HAL_RADIUS,MGN_THRESHOLD,MGN_SOFTNESS};
+ for(int id:locked)require(definitions[id].u.fs_d.value==initial[id].u.fs_d.value,"Variation changed locked/shared settings");
+ require(definitions[MGN_BLOOM].u.fs_d.value!=initial[MGN_BLOOM].u.fs_d.value,"Variation did not explore unlocked bloom");
+ restore();definitions[MGN_LOCK_GRAIN].u.bd.value=definitions[MGN_LOCK_HAL].u.bd.value=TRUE;changed(MGN_VARIATION);
+ for(int id:style)require(definitions[id].u.fs_d.value==variation[id].u.fs_d.value,"Variation is not reproducible from saved state");
+ changed(MGN_RANDOMIZE);
+ for(int id:locked)require(definitions[id].u.fs_d.value==initial[id].u.fs_d.value,"New look changed locked/shared settings");
+ require(definitions[MGN_PRESET].u.pd.value==customLook,"Mixed locked look has misleading preset label");
+ restore();definitions[MGN_VARIATION_AMOUNT].u.fs_d.value=0;changed(MGN_VARIATION);
+ for(int id:style)require(definitions[id].u.fs_d.value==initial[id].u.fs_d.value,"Zero variation changed appearance");
+ restore();definitions[MGN_LOCK_GRAIN].u.bd.value=definitions[MGN_LOCK_HAL].u.bd.value=definitions[MGN_LOCK_BLOOM].u.bd.value=TRUE;
+ changed(MGN_VARIATION);changed(MGN_RANDOMIZE);
+ for(int id:style)require(definitions[id].u.fs_d.value==initial[id].u.fs_d.value,"All-locked exploration changed appearance");
+ // Replay old serialized controls by disk ID. New strength remains neutral.
+ for(const auto& pair:legacy)if(isRenderParameter(pair[0])&&definitions[pair[0]].param_type==PF_Param_FLOAT_SLIDER)definitions[pair[0]].u.fs_d.value=pair[1]+.125;
+ definitions[MGN_MODEL].u.pd.value=1;
+ require(readTextureParams([&](int id){return (float)definitions[id].u.fs_d.value;},[&](int id){return definitions[id].u.pd.value;}).particle==0,"Saved Fast type was replaced by new default");
+ restore();
+ std::cout<<"Passed: legacy disk IDs, Simulated default, primary/Advanced layout, complete look presets, technical-context preservation, module styles, Custom state, pattern-only seed, bounded/reproducible exploration and locks. Mock UI callbacks; not Adobe project migration or undo verification.\n";
+}
 
 template<class Pixel> static void integerSelectorTests(Entry entry,PF_InData in,PF_ParamDef** params,int maxValue,PF_PixelFormat format){
  const int w=77,h=53,stride=w+7;std::vector<Pixel> src(stride*h),dst(stride*h);
@@ -192,6 +251,7 @@ int main(int argc,char** argv){try{
  require(out.num_params==MGN_NUM_PARAMS&&definitions.size()==MGN_NUM_PARAMS,"Parameter count mismatch");
  std::vector<PF_ParamDef*> params;for(auto& d:definitions)params.push_back(&d);
  require(definitions[MGN_ADVANCED].flags&PF_ParamFlag_START_COLLAPSED,"Advanced group is not collapsed");
+ presetTests(entry,in,out,params.data());
  PF_UserChangedParamExtra changed{};changed.param_index=MGN_RANDOMIZE;
  int initial=definitions[MGN_PRESET].u.pd.value;
  require(entry(PF_Cmd_USER_CHANGED_PARAM,&in,&out,params.data(),nullptr,&changed)==0,"Randomize failed");
@@ -199,6 +259,7 @@ int main(int argc,char** argv){try{
  require(definitions[MGN_SEED].uu.change_flags&PF_ChangeFlag_CHANGED_VALUE,"Random seed not marked for saving");
  definitions[MGN_GRAIN].u.fs_d.value=2.5;definitions[MGN_SIZE].u.fs_d.value=1.2;definitions[MGN_COLOR].u.fs_d.value=15;
  definitions[MGN_HALATION].u.fs_d.value=15;definitions[MGN_BLOOM].u.fs_d.value=8;definitions[MGN_HAL_RADIUS].u.fs_d.value=8;definitions[MGN_BLOOM_RADIUS].u.fs_d.value=32;definitions[MGN_SEED].u.fs_d.value=731;
+ definitions[MGN_THRESHOLD].u.fs_d.value=70;definitions[MGN_SOFTNESS].u.fs_d.value=20;definitions[MGN_SHADOWS].u.fs_d.value=70;definitions[MGN_HIGHLIGHTS].u.fs_d.value=35;definitions[MGN_MODEL].u.pd.value=1;
  const int w=131,h=93,pitch=(w+7)*16;std::vector<PF_PixelFloat> src((w+7)*h),dst((w+7)*h);
  for(int y=0;y<h;y++)for(int x=0;x<w;x++){auto& v=src[y*(w+7)+x];v.alpha=y<3?0.f:.35f+(x%7)*.09f;v.red=.5f*v.alpha;v.green=.25f*v.alpha;v.blue=.1f*v.alpha;if(y==45&&x>50&&x<70)v.red=v.green=v.blue=1.5f*v.alpha;}
  PF_EffectWorld input{},output{};input.width=output.width=w;input.height=output.height=h;input.rowbytes=output.rowbytes=pitch;input.data=(PF_PixelPtr)src.data();output.data=(PF_PixelPtr)dst.data();definitions[0].u.ld=input;

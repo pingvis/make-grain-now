@@ -34,7 +34,7 @@ void CudaEngine::render(CUdeviceptr input,CUdeviceptr output,int w,int h,const T
  if(n>capacity) {for(auto p:{a,b,hal,bloom})if(p)freeMem(p);a=b=hal=bloom=0;capacity=0;a=alloc(n);b=alloc(n);hal=alloc(n);bloom=alloc(n);capacity=n;}
  TextureParams p=param;
  int gw[2]={qw,qw},gh[2]={qh,qh},factors[2]={1,1};
- if(p.halation!=0||p.bloom!=0){
+ if(p.mix!=0&&(p.halation!=0||p.bloom!=0)){
   void* e[]={&input,&a,&w,&h,&qw,&qh,&p};launch(extractFn,qw,qh,e,stream);
   for(int type=0;type<2;type++) {if((type?p.bloom:p.halation)==0)continue;float radius=(type?p.bloomRadius:p.halRadius)*p.scale/4.f;int vertical=0;CUdeviceptr dest=type?bloom:hal;
    while(radius/factors[type]>2.5f)factors[type]*=2;
@@ -48,7 +48,7 @@ void CudaEngine::render(CUdeviceptr input,CUdeviceptr output,int w,int h,const T
  void* c[]={&input,&output,&hal,&bloom,&w,&h,&gw[0],&gh[0],&gw[1],&gh[1],&factors[0],&factors[1],&p};launch(composeFn,w,h,c,stream);
 }
 void CudaEngine::renderHost(CUdeviceptr input,CUdeviceptr output,int w,int h,int outW,int outH,int srcPitch,int dstPitch,int half,int premult,int cropX,int cropY,const TextureParams& p,CUstream stream){
- int bypass=p.grain==0&&p.halation==0&&p.bloom==0;
+ int bypass=p.mix==0||(p.grain==0&&p.halation==0&&p.bloom==0);
  if(bypass){void* args[]={&input,&input,&output,&w,&h,&outW,&outH,&srcPitch,&dstPitch,&half,&premult,&cropX,&cropY,&bypass};launch(unpackFn,outW,outH,args,stream);return;}
  size_t n=(size_t)w*h*16;
  if(n>nativeCapacity){for(auto q:{nativeIn,nativeOut})if(q)freeMem(q);nativeIn=nativeOut=0;nativeCapacity=0;nativeIn=alloc(n);nativeOut=alloc(n);nativeCapacity=n;}

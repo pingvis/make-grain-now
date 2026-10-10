@@ -1,7 +1,7 @@
 // Original implementation. Fast grain is an artistic approximation, not calibrated stock grain.
 struct Params {
  float grain,size,color,halation,halRadius,bloom,bloomRadius,threshold,softness;
- float shadows,highlights,scale,originX,originY; unsigned seed,frame; int linear,particle;
+ float shadows,highlights,scale,originX,originY; unsigned seed,frame; int linear,particle;float mix;
 };
 __device__ unsigned hash(unsigned x) { x ^= x>>16; x*=0x7feb352dU; x^=x>>15; x*=0x846ca68bU; return x^(x>>16); }
 __device__ float rnd(unsigned s) { return (hash(s)>>8)*(1.f/16777216.f); }
@@ -84,7 +84,8 @@ extern "C" __global__ void down(const float4* src,float4* dst,int w,int h,int dw
 }
 extern "C" __global__ void compose(const float4* src,float4* dst,const float4* hal,const float4* bloom,int w,int h,int hw,int hh,int bw,int bh,int hf,int bf,Params p) {
  int x=blockIdx.x*blockDim.x+threadIdx.x,y=blockIdx.y*blockDim.y+threadIdx.y;if(x>=w||y>=h)return;
- float4 v=src[y*w+x];if(v.w<=0.f || (p.grain==0.f&&p.halation==0.f&&p.bloom==0.f)){dst[y*w+x]=v;return;}
+ float4 v=src[y*w+x];if(v.w<=0.f || p.mix==0.f || (p.grain==0.f&&p.halation==0.f&&p.bloom==0.f)){dst[y*w+x]=v;return;}
+ float4 original=v;
  float4 hv=p.halation!=0?sample4(hal,hw,hh,(x+.5f)/(4.f*hf)-.5f,(y+.5f)/(4.f*hf)-.5f):make_float4(0,0,0,0);
  float4 bv=p.bloom!=0?sample4(bloom,bw,bh,(x+.5f)/(4.f*bf)-.5f,(y+.5f)/(4.f*bf)-.5f):make_float4(0,0,0,0);
  float r=v.x,g=v.y,b=v.z;
@@ -105,6 +106,7 @@ extern "C" __global__ void compose(const float4* src,float4* dst,const float4* h
   if(p.linear) {float er=encode(v.x,0),eg=encode(v.y,0),eb=encode(v.z,0);v.x=decode(er+amp*(n*(1-p.color)+cr*p.color),0);v.y=decode(eg+amp*(n*(1-p.color)+cg*p.color),0);v.z=decode(eb+amp*(n*(1-p.color)+cb*p.color),0);}
   else {v.x+=amp*(n*(1-p.color)+cr*p.color);v.y+=amp*(n*(1-p.color)+cg*p.color);v.z+=amp*(n*(1-p.color)+cb*p.color);}
  }
+ if(p.mix!=1.f){v.x=original.x+(v.x-original.x)*p.mix;v.y=original.y+(v.y-original.y)*p.mix;v.z=original.z+(v.z-original.z)*p.mix;}
  dst[y*w+x]=v;
 }
 __device__ float halfFloat(unsigned short h) {

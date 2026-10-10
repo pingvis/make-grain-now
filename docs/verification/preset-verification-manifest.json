@@ -1,0 +1,14 @@
+{
+  "verifiedAtUtc": "2026-10-10T15:48:09.3148694Z",
+  "binarySHA256": "E16C26CE9E930517FA89F7E586AA24B7722CE9252202B8D5EC1C51CAC1491C4A",
+  "workspaceChecks": [
+    "verify_binary.py",
+    "core_tests.py",
+    "host_buffer_tests.py",
+    "particle_reference.py",
+    "stress_tests.py",
+    "native_adobe_tests.exe"
+  ],
+  "adobeHostRenderingVerified": false,
+  "scope": "Standalone CUDA and shipped entry points with mock SDK callbacks. Actual Adobe evidence is recorded separately in ae-host-report.json and ae-float-report.json; this manifest does not certify host qualification."
+}

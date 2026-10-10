@@ -22,30 +22,90 @@ template<class T> struct Suite {SPBasicSuite* basic;const char* name;long versio
  ~Suite(){basic->ReleaseSuite(name,version);}const T* operator->(){return p;}
 };
 static PF_Err paramsSetup(PF_InData* in_data,PF_OutData* out){PF_ParamDef def{};
- PF_ADD_POPUPX("Preset",6,2,"Fine & gentle|Soft color|Coarse monochrome|Warm lights|Dream bloom|Gritty color",PF_ParamFlag_SUPERVISE,MGN_PRESET);
- PF_ADD_BUTTON("Explore","Randomize preset",0,PF_ParamFlag_SUPERVISE|PF_ParamFlag_CANNOT_TIME_VARY,MGN_RANDOMIZE);
-#define SLIDER(label,id,max,defaultValue) PF_ADD_FLOAT_SLIDERX(label,0,max,0,max,defaultValue,1,PF_ValueDisplayFlag_NONE,0,id)
- SLIDER("Grain amount",MGN_GRAIN,15,2.5);PF_ADD_FLOAT_SLIDERX("Grain size",.25,8,.25,4,1.2,2,PF_ValueDisplayFlag_NONE,0,MGN_SIZE);
- SLIDER("Halation amount",MGN_HALATION,100,15);SLIDER("Bloom amount",MGN_BLOOM,100,8);
- PF_ADD_TOPICX("Advanced",PF_ParamFlag_START_COLLAPSED,MGN_ADVANCED);
- SLIDER("Grain color",MGN_COLOR,100,35);SLIDER("Halation radius",MGN_HAL_RADIUS,80,8);SLIDER("Bloom radius",MGN_BLOOM_RADIUS,200,32);
+ PF_ADD_POPUPX("Look",customLook,2,lookNames,PF_ParamFlag_SUPERVISE,diskId(MGN_PRESET));
+ PF_ADD_POPUPX("Grain type",2,2,"Gaussian (fast)|Simulated (slow)",0,diskId(MGN_MODEL));
+ PF_ADD_FLOAT_SLIDERX("Overall strength",0,100,0,100,100,1,PF_ValueDisplayFlag_NONE,PF_ParamFlag_USE_VALUE_FOR_OLD_PROJECTS,diskId(MGN_STRENGTH));
+ PF_ADD_BUTTON("Explore","New look",0,PF_ParamFlag_SUPERVISE|PF_ParamFlag_CANNOT_TIME_VARY,diskId(MGN_RANDOMIZE));
+ PF_ADD_BUTTON("Variation","New variation",0,PF_ParamFlag_SUPERVISE|PF_ParamFlag_CANNOT_TIME_VARY,diskId(MGN_VARIATION));
+ PF_ADD_TOPICX("Advanced",PF_ParamFlag_START_COLLAPSED,diskId(MGN_ADVANCED));
+#define SLIDER(label,id,max,defaultValue) PF_ADD_FLOAT_SLIDERX(label,0,max,0,max,defaultValue,1,PF_ValueDisplayFlag_NONE,PF_ParamFlag_SUPERVISE,diskId(id))
+ PF_ADD_POPUPX("Grain preset",5,1,"Custom|Fine|Soft color|Dense color|Coarse monochrome",PF_ParamFlag_SUPERVISE,diskId(MGN_GRAIN_PRESET));
+ SLIDER("Grain amount",MGN_GRAIN,15,2.5);PF_ADD_FLOAT_SLIDERX("Grain size",.25,8,.25,4,1.2,2,PF_ValueDisplayFlag_NONE,PF_ParamFlag_SUPERVISE,diskId(MGN_SIZE));
+ SLIDER("Grain color",MGN_COLOR,100,35);
+ PF_ADD_CHECKBOXX("Lock grain settings",FALSE,PF_ParamFlag_CANNOT_TIME_VARY,diskId(MGN_LOCK_GRAIN));
+ PF_ADD_POPUPX("Halation preset",5,1,"Custom|Off|Tight|Soft|Wide",PF_ParamFlag_SUPERVISE,diskId(MGN_HAL_PRESET));
+ SLIDER("Halation amount",MGN_HALATION,100,15);SLIDER("Halation radius",MGN_HAL_RADIUS,80,8);
+ PF_ADD_CHECKBOXX("Lock halation settings",FALSE,PF_ParamFlag_CANNOT_TIME_VARY,diskId(MGN_LOCK_HAL));
+ PF_ADD_POPUPX("Bloom preset",5,1,"Custom|Off|Gentle|Soft diffusion|Dreamy",PF_ParamFlag_SUPERVISE,diskId(MGN_BLOOM_PRESET));
+ SLIDER("Bloom amount",MGN_BLOOM,100,8);SLIDER("Bloom radius",MGN_BLOOM_RADIUS,200,32);
+ PF_ADD_CHECKBOXX("Lock bloom settings",FALSE,PF_ParamFlag_CANNOT_TIME_VARY,diskId(MGN_LOCK_BLOOM));
  SLIDER("Highlight threshold",MGN_THRESHOLD,150,70);SLIDER("Highlight softness",MGN_SOFTNESS,100,20);
  SLIDER("Grain in shadows",MGN_SHADOWS,200,70);SLIDER("Grain in highlights",MGN_HIGHLIGHTS,200,35);
- PF_ADD_FLOAT_SLIDERX("Seed",0,1000000,0,10000,731,0,PF_ValueDisplayFlag_NONE,PF_ParamFlag_CANNOT_INTERP,MGN_SEED);
- PF_ADD_POPUPX("Input encoding",2,1,"Rec.709 / display gamma|Linear RGB",0,MGN_SPACE);
- PF_ADD_POPUPX("Grain renderer",2,1,"Fast creative|Particle research (slow)",0,MGN_MODEL);
- PF_END_TOPIC(MGN_ADVANCED_END);out->num_params=MGN_NUM_PARAMS;return PF_Err_NONE;
+ PF_ADD_FLOAT_SLIDERX("Variation range",0,100,0,100,25,0,PF_ValueDisplayFlag_NONE,PF_ParamFlag_CANNOT_TIME_VARY,diskId(MGN_VARIATION_AMOUNT));
+ PF_ADD_BUTTON("Pattern","New grain pattern",0,PF_ParamFlag_SUPERVISE|PF_ParamFlag_CANNOT_TIME_VARY,diskId(MGN_PATTERN));
+ PF_ADD_FLOAT_SLIDERX("Grain seed",0,1000000,0,10000,731,0,PF_ValueDisplayFlag_NONE,PF_ParamFlag_CANNOT_INTERP,diskId(MGN_SEED));
+ PF_ADD_FLOAT_SLIDERX("Explore seed",0,1000000,0,10000,7919,0,PF_ValueDisplayFlag_NONE,PF_ParamFlag_CANNOT_INTERP|PF_ParamFlag_CANNOT_TIME_VARY,diskId(MGN_EXPLORE_SEED));
+ PF_ADD_POPUPX("Input encoding",2,1,"Rec.709 / display gamma|Linear RGB",0,diskId(MGN_SPACE));
+ PF_END_TOPIC(diskId(MGN_ADVANCED_END));out->num_params=MGN_NUM_PARAMS;return PF_Err_NONE;
 #undef SLIDER
 }
 static TextureParams readParams(PF_ParamDef* params[]){return readTextureParams([&](int id){return (float)params[id]->u.fs_d.value;},[&](int id){return params[id]->u.pd.value;});}
 static void frameParams(PF_InData* in,TextureParams& p){p.frame=in->time_step?(uint32_t)(in->current_time/in->time_step):0;p.scale=(float)in->height/1080.f*in->downsample_y.num/in->downsample_y.den; p.scale=std::max(p.scale,.001f);}
 static PF_Err changed(PF_InData*,PF_OutData* out,PF_ParamDef* params[],PF_UserChangedParamExtra* extra){
- if(extra->param_index!=MGN_PRESET&&extra->param_index!=MGN_RANDOMIZE)return PF_Err_NONE;
- int index=params[MGN_PRESET]->u.pd.value-1;
- if(extra->param_index==MGN_RANDOMIZE){unsigned seed=(unsigned)params[MGN_SEED]->u.fs_d.value;seed=seed*1664525U+1013904223U;index=(index+1+(seed%5))%6;params[MGN_PRESET]->u.pd.value=(short)(index+1);params[MGN_PRESET]->uu.change_flags|=PF_ChangeFlag_CHANGED_VALUE;params[MGN_SEED]->u.fs_d.value=seed%1000000;params[MGN_SEED]->uu.change_flags|=PF_ChangeFlag_CHANGED_VALUE;}
- index=std::clamp(index,0,5);const auto& p=creativePresets[index];
+ const int changedIndex=extra->param_index;
  auto set=[&](int i,float value){params[i]->u.fs_d.value=value;params[i]->uu.change_flags|=PF_ChangeFlag_CHANGED_VALUE;};
- set(MGN_GRAIN,p.grain);set(MGN_SIZE,p.size);set(MGN_COLOR,p.color*100);set(MGN_HALATION,p.halation);set(MGN_BLOOM,p.bloom);set(MGN_HAL_RADIUS,p.halRadius);set(MGN_BLOOM_RADIUS,p.bloomRadius);
+ auto popup=[&](int i,int value){params[i]->u.pd.value=(short)value;params[i]->uu.change_flags|=PF_ChangeFlag_CHANGED_VALUE;};
+ auto custom=[&](){popup(MGN_PRESET,customLook);};
+ auto grain=[&](float amount,float size,float color,float shadows,float highlights){set(MGN_GRAIN,amount);set(MGN_SIZE,size);set(MGN_COLOR,color*100);set(MGN_SHADOWS,shadows*100);set(MGN_HIGHLIGHTS,highlights*100);popup(MGN_GRAIN_PRESET,1);};
+ auto halation=[&](float amount,float radius){set(MGN_HALATION,amount);set(MGN_HAL_RADIUS,radius);popup(MGN_HAL_PRESET,1);};
+ auto bloom=[&](float amount,float radius){set(MGN_BLOOM,amount);set(MGN_BLOOM_RADIUS,radius);popup(MGN_BLOOM_PRESET,1);};
+ auto next=[](unsigned& state){state=state*1664525U+1013904223U;return state;};
+ unsigned state=(unsigned)params[MGN_EXPLORE_SEED]->u.fs_d.value;
+ const bool lockGrain=params[MGN_LOCK_GRAIN]->u.bd.value!=0,lockHal=params[MGN_LOCK_HAL]->u.bd.value!=0,lockBloom=params[MGN_LOCK_BLOOM]->u.bd.value!=0;
+ if(changedIndex==MGN_PRESET||changedIndex==MGN_RANDOMIZE){
+  int index=params[MGN_PRESET]->u.pd.value-1;
+  const bool exploring=changedIndex==MGN_RANDOMIZE;
+  if(exploring&&lockGrain&&lockHal&&lockBloom)return PF_Err_NONE;
+  if(exploring){
+   if(index>=0&&index<creativePresetCount)index=(index+1+next(state)%(creativePresetCount-1))%creativePresetCount;
+   else index=next(state)%creativePresetCount;
+   set(MGN_EXPLORE_SEED,(float)(state%1000000));
+  }
+  if(index<0||index>=creativePresetCount)return PF_Err_NONE;
+  const auto& p=creativePresets[index];
+  if(!exploring||!lockGrain)grain(p.grain,p.size,p.color,p.shadows,p.highlights);
+  if(!exploring||!lockHal)halation(p.halation,p.halRadius);
+  if(!exploring||!lockBloom)bloom(p.bloom,p.bloomRadius);
+  // Extraction is shared by both glow modules. Preserve it if either is locked.
+  if(!exploring||(!lockHal&&!lockBloom)){set(MGN_THRESHOLD,p.threshold*100);set(MGN_SOFTNESS,p.softness*100);}
+  popup(MGN_PRESET,exploring&&(lockGrain||lockHal||lockBloom)?customLook:index+1);
+  if(exploring&&!lockGrain){unsigned seed=(unsigned)params[MGN_SEED]->u.fs_d.value;set(MGN_SEED,(float)((seed+1+next(state)%999999)%1000000));set(MGN_EXPLORE_SEED,(float)(state%1000000));}
+ }else if(changedIndex==MGN_VARIATION){
+  const float range=std::clamp((float)params[MGN_VARIATION_AMOUNT]->u.fs_d.value*.01f,0.f,1.f);
+  if(range==0|| (lockGrain&&lockHal&&lockBloom))return PF_Err_NONE;
+  auto vary=[&](int i,float fraction,float minimum,float maximum){float u=(next(state)>>8)*(1.f/16777216.f);set(i,std::clamp((float)params[i]->u.fs_d.value*(1+(u*2-1)*fraction*range),minimum,maximum));};
+  if(!lockGrain){vary(MGN_GRAIN,.35f,0,15);vary(MGN_SIZE,.25f,.25f,8);vary(MGN_COLOR,.25f,0,100);vary(MGN_SHADOWS,.2f,0,200);vary(MGN_HIGHLIGHTS,.2f,0,200);popup(MGN_GRAIN_PRESET,1);}
+  if(!lockHal){vary(MGN_HALATION,.35f,0,100);vary(MGN_HAL_RADIUS,.25f,0,80);popup(MGN_HAL_PRESET,1);}
+  if(!lockBloom){vary(MGN_BLOOM,.35f,0,100);vary(MGN_BLOOM_RADIUS,.25f,0,200);popup(MGN_BLOOM_PRESET,1);}
+  if(!lockHal&&!lockBloom){vary(MGN_THRESHOLD,.08f,0,150);vary(MGN_SOFTNESS,.2f,0,100);}
+  set(MGN_EXPLORE_SEED,(float)(state%1000000));custom();
+ }else if(changedIndex==MGN_PATTERN){
+  unsigned seed=(unsigned)params[MGN_SEED]->u.fs_d.value,stateSeed=seed;unsigned step=next(stateSeed)%999999;set(MGN_SEED,(float)((seed+1+step)%1000000));
+ }else if(changedIndex==MGN_GRAIN_PRESET){
+  int index=params[MGN_GRAIN_PRESET]->u.pd.value-2;
+  if(index>=0&&index<4){auto p=grainPresets[index];grain(p.grain,p.size,p.color,p.shadows,p.highlights);popup(MGN_GRAIN_PRESET,index+2);}custom();
+ }else if(changedIndex==MGN_HAL_PRESET||changedIndex==MGN_BLOOM_PRESET){
+  int index=params[changedIndex]->u.pd.value-2;
+  if(index>=0&&index<4){auto p=changedIndex==MGN_HAL_PRESET?halationPresets[index]:bloomPresets[index];if(changedIndex==MGN_HAL_PRESET)halation(p.amount,p.radius);else bloom(p.amount,p.radius);popup(changedIndex,index+2);}custom();
+ }else{
+  switch(changedIndex){
+  case MGN_GRAIN:case MGN_SIZE:case MGN_COLOR:case MGN_SHADOWS:case MGN_HIGHLIGHTS:popup(MGN_GRAIN_PRESET,1);custom();break;
+  case MGN_HALATION:case MGN_HAL_RADIUS:popup(MGN_HAL_PRESET,1);custom();break;
+  case MGN_BLOOM:case MGN_BLOOM_RADIUS:popup(MGN_BLOOM_PRESET,1);custom();break;
+  case MGN_THRESHOLD:case MGN_SOFTNESS:popup(MGN_HAL_PRESET,1);popup(MGN_BLOOM_PRESET,1);custom();break;
+  default:return PF_Err_NONE;
+  }
+ }
  out->out_flags|=PF_OutFlag_REFRESH_UI|PF_OutFlag_FORCE_RERENDER;return PF_Err_NONE;
 }
 // CPU-visible host frames still execute CUDA, with a transfer cost. Native GPU selectors below avoid it.
@@ -58,7 +118,7 @@ static PF_Err renderWorld(PF_InData* in,PF_EffectWorld* src,PF_EffectWorld* dst,
  if(!w||!h)return PF_Err_NONE;
  const int bytes=depth==32?16:depth==16?8:4;
  int cropX=dst->origin_x-src->origin_x,cropY=dst->origin_y-src->origin_y;
- const bool bypass=p.grain==0&&p.halation==0&&p.bloom==0;
+ const bool bypass=p.mix==0||(p.grain==0&&p.halation==0&&p.bloom==0);
  if(bypass){for(int y=0;y<dst->height;y++)for(int x=0;x<dst->width;x++){
   int sx=x+cropX,sy=y+cropY;char* q=(char*)dst->data+y*dst->rowbytes+x*bytes;
   if(sx<0||sy<0||sx>=w||sy>=h)memset(q,0,bytes);else memcpy(q,(char*)src->data+sy*src->rowbytes+sx*bytes,bytes);
@@ -100,7 +160,7 @@ struct ParameterCheckouts {
 };
 static PF_Err preRender(PF_InData* in,PF_PreRenderExtra* extra){
  std::unique_ptr<PreRender> data(new PreRender);ParameterCheckouts values(in);std::vector<PF_ParamDef*> params(MGN_NUM_PARAMS);
- for(int i=1;i<MGN_NUM_PARAMS;i++){params[i]=&values.values[i];if(i==MGN_ADVANCED||i==MGN_ADVANCED_END||i==MGN_RANDOMIZE)continue;auto e=values.checkout(i);if(e)return e;}
+ for(int i=1;i<MGN_NUM_PARAMS;i++){if(!isRenderParameter(i))continue;params[i]=&values.values[i];auto e=values.checkout(i);if(e)return e;}
  data->p=readParams(params.data());
  auto check=values.checkin();if(check)return check;
  auto req=extra->input->output_request;
@@ -155,9 +215,9 @@ extern "C" DllExport PF_Err PluginDataEntryFunction2(PF_PluginDataPtr ptr,PF_Plu
 }
 extern "C" DllExport PF_Err EffectMain(PF_Cmd cmd,PF_InData* in,PF_OutData* out,PF_ParamDef* params[],PF_LayerDef* output,void* extra){
  try{switch(cmd){
- case PF_Cmd_ABOUT:snprintf(out->return_msg,sizeof(out->return_msg),"Make Grain Now 0.1\rCreative CUDA grain, halation and bloom. Particle mode is experimental.");break;
+ case PF_Cmd_ABOUT:snprintf(out->return_msg,sizeof(out->return_msg),"Make Grain Now 0.2\rPreset-driven CUDA grain, halation and bloom. Simulated grain uses experimental particles, not calibrated film stocks.");break;
  case PF_Cmd_GLOBAL_SETUP:
-  out->my_version=PF_VERSION(1,0,0,PF_Stage_DEVELOP,1);out->out_flags=PF_OutFlag_DEEP_COLOR_AWARE|PF_OutFlag_NON_PARAM_VARY;
+  out->my_version=PF_VERSION(1,0,0,PF_Stage_DEVELOP,2);out->out_flags=PF_OutFlag_DEEP_COLOR_AWARE|PF_OutFlag_NON_PARAM_VARY;
   out->out_flags2=PF_OutFlag2_FLOAT_COLOR_AWARE|PF_OutFlag2_SUPPORTS_SMART_RENDER|PF_OutFlag2_SUPPORTS_GPU_RENDER_F32|PF_OutFlag2_SUPPORTS_THREADED_RENDERING|PF_OutFlag2_PARAM_GROUP_START_COLLAPSED_FLAG;
   if(in->appl_id=='PrMr'){Suite<PF_PixelFormatSuite1> suite(in,kPFPixelFormatSuite,kPFPixelFormatSuiteVersion1);suite->ClearSupportedPixelFormats(in->effect_ref);suite->AddSupportedPixelFormat(in->effect_ref,PrPixelFormat_BGRA_4444_32f);suite->AddSupportedPixelFormat(in->effect_ref,PrPixelFormat_BGRA_4444_8u);}break;
  case PF_Cmd_PARAMS_SETUP:return paramsSetup(in,out);
