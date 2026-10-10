@@ -1,0 +1,148 @@
+{
+  "checked_at_utc": "2026-10-10T10:10:08.360687+00:00",
+  "binary_sha256": "745c8df9d3a10118f36e4b2c361f740e8d4dbadb499ac236eb2a3ebfde839251",
+  "scope": "Actual AE 32-bit-float PSD exports, 1920x1080 at 50 fps; working space logged in ae-float.txt. CUDA versus CPU-visible route, alpha and preliminary Exposure stacking; not Premiere, Lumetri, ROI, MFR or playback.",
+  "passed": true,
+  "bypass_vs_source": {
+    "mean": 0.0,
+    "maximum": 0.0,
+    "changed_pixels": 0
+  },
+  "nested_vs_upstream": {
+    "mean": 0.0,
+    "maximum": 0.0,
+    "changed_pixels": 0
+  },
+  "adjustment_bypass_vs_upstream": {
+    "mean": 0.0,
+    "maximum": 0.0,
+    "changed_pixels": 0
+  },
+  "adjustment_vs_clip": {
+    "mean": 0.0,
+    "maximum": 0.0,
+    "changed_pixels": 0
+  },
+  "repeat_same_frame": {
+    "mean": 0.0,
+    "maximum": 0.0,
+    "changed_pixels": 0
+  },
+  "temporal_grain": {
+    "mean": 0.0123828686773777,
+    "maximum": 0.25700807571411133,
+    "changed_pixels": 2073600
+  },
+  "upstream_change": {
+    "mean": 0.21803289651870728,
+    "maximum": 2.69185471534729,
+    "changed_pixels": 2073600
+  },
+  "float_prerender_vs_adjustment": {
+    "mean": 4.8327532198300105e-08,
+    "maximum": 1.562759280204773e-06,
+    "changed_pixels": 1650573
+  },
+  "cuda_vs_cpu_visible": {
+    "mean": 0.0,
+    "maximum": 0.0,
+    "changed_pixels": 0
+  },
+  "alpha_preservation": {
+    "mean": 0.0,
+    "maximum": 0.0,
+    "changed_pixels": 0
+  },
+  "partial_alpha_rgb_effect": {
+    "mean": 0.019509492442011833,
+    "maximum": 0.12462842464447021,
+    "changed_pixels": 1036800
+  },
+  "exports": {
+    "clip": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "adjustment": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "bypass": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "source": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "nested": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "upstream": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "adjustment-bypass": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "repeat": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "next-frame": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "changed": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "prerender": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "cpu-visible": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "alpha-effect": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    },
+    "alpha-source": {
+      "format": "PSD",
+      "width": 1920,
+      "height": 1080,
+      "depth": 32
+    }
+  },
+  "comparison_tolerance": 5e-06
+}

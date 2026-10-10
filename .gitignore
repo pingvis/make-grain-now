@@ -1,0 +1,16 @@
+.deps/
+build/
+build-*/
+dist/
+vendor/
+tests/fixtures/input/*
+!tests/fixtures/input/README.md
+tests/fixtures/derived/
+tests/host-projects/
+tests/outputs/
+__pycache__/
+*.pyc
+AGENTS.md
+PROJECT_BRIEF.md
+OPTIMIZATION.md
+publish/

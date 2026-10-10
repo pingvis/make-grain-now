@@ -1,0 +1,47 @@
+{
+  "comparison": "Independent NumPy equal-radius Boolean coverage reference; fixed intensities only",
+  "results": [
+    {
+      "density": 0.15,
+      "mismatched_samples": 0,
+      "total_pixels": 6144,
+      "max_abs_error": 2.384185791015625e-07,
+      "kernel_ms": 0.07145600020885468,
+      "mean": 0.03510956093668938,
+      "stddev": 0.8128190040588379
+    },
+    {
+      "density": 0.5,
+      "mismatched_samples": 0,
+      "total_pixels": 6144,
+      "max_abs_error": 9.5367431640625e-07,
+      "kernel_ms": 0.17123199999332428,
+      "mean": 0.005493027623742819,
+      "stddev": 0.7599974870681763
+    },
+    {
+      "density": 0.85,
+      "mismatched_samples": 0,
+      "total_pixels": 6144,
+      "max_abs_error": 2.384185791015625e-07,
+      "kernel_ms": 0.26339200139045715,
+      "mean": -0.002917249919846654,
+      "stddev": 0.6840488910675049
+    }
+  ],
+  "timings": [
+    {
+      "model": "fast",
+      "width": 960,
+      "height": 540,
+      "kernel_median_ms": 0.12105599790811539
+    },
+    {
+      "model": "particle",
+      "width": 960,
+      "height": 540,
+      "kernel_median_ms": 1.027135968208313
+    }
+  ],
+  "limits": "Does not validate full Newson variable radii, optical convergence, calibration, or fast approximation matching. Eight optical samples; fixed-density test images."
+}

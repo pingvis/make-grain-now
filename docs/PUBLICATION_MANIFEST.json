@@ -1,0 +1,159 @@
+{
+  "repository": "pingvis/make-grain-now",
+  "visibility": "public",
+  "license": "MIT",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "7A14C3500DC4C747E2744AA245020ADD61B81BA060E2595CEB598B7CACC2893A"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "41F073852705753E63966AF97223CFF8E76CF3E1F0052017EA79CCDD5364FD9E"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "26436BBDDA6F99FC62843C9BCEE00789F1BE087A5DF796D7FD12691D2E89A632"
+    },
+    {
+      "path": "README.md",
+      "sha256": "910FCDFAF579941E1552DCF33FEC02F4E6C79597E6570DF1AEBAF00B85C4494B"
+    },
+    {
+      "path": "TESTING_GUIDE.md",
+      "sha256": "102F3BA8E830225F89C4E378270F474FB1523B649510F4E83C5A7DB63AA4ED37"
+    },
+    {
+      "path": "THIRD_PARTY.md",
+      "sha256": "BB5494C4A769DF19EBA344DFC2991816D60DA68090E0C25D7CC835AFFD0ADA2C"
+    },
+    {
+      "path": "docs/BUILDING.md",
+      "sha256": "FBC88C17ECC6083F955A9A712BB37FAC32FDEA83C2E9AF378901C8B93282326E"
+    },
+    {
+      "path": "docs/PERFORMANCE.md",
+      "sha256": "A96C90F3433D44A79262D9CB65444AEE787FADE705BD73ECC42FA57A9CA3DA87"
+    },
+    {
+      "path": "docs/RELEASE_NOTES.md",
+      "sha256": "CD46A155A504F509AEFEBCD7A9ACFFC11C28A935DBFA34E0AA65ADB0B0312B71"
+    },
+    {
+      "path": "docs/verification/ae-float-report.json",
+      "sha256": "FCE0826D825597BE8834B55085F9AB9C09EF680FABED404BE6090DFC07F1B117"
+    },
+    {
+      "path": "docs/verification/native-gpu-benchmark.json",
+      "sha256": "C60570AAD4A07C21BF7CEBE389A66C16A1E45C00D4D976059D72F4FAF7075833"
+    },
+    {
+      "path": "docs/verification/optimization-comparison-repeat.json",
+      "sha256": "DF4CB192B7F0101A95210C58D884AD48661DFC94D1DA92DF80111B4E449922BE"
+    },
+    {
+      "path": "docs/verification/optimization-comparison.json",
+      "sha256": "43A5882014D5AAE5A68D3DC99E82A82BF4A594D58C939E0935DBF2CC81E88C46"
+    },
+    {
+      "path": "docs/verification/particle-report.json",
+      "sha256": "36F7C10D0ADC8F137D55C8B885F47F0F4739C224D01C2701DA2AF3C871A96FAC"
+    },
+    {
+      "path": "docs/verification/stress-report.json",
+      "sha256": "B0FA69913D2972A9B1940F601A755ADDFAC639F43738CD1C8554E21009A66975"
+    },
+    {
+      "path": "docs/verification/verification-manifest.json",
+      "sha256": "A2A694EB1235789393CA292CC27113AE021F53471EC18222108673C128E3499C"
+    },
+    {
+      "path": "scripts/build.ps1",
+      "sha256": "F75F79CFDDEE6BA4E9270A9B1D78A15B3C4F39E6A233104EB75531FE7E868EF6"
+    },
+    {
+      "path": "scripts/compile_kernels.py",
+      "sha256": "6465E25B4F45BF73D643B2160DD56577EEA635A0C4E254D5AFB22FA9C04FF042"
+    },
+    {
+      "path": "scripts/core_tests.py",
+      "sha256": "36E3E030FFC1F116FDFC69E56EED0CB8357A67CE9D1F12A32993176F6B5B2901"
+    },
+    {
+      "path": "scripts/host_buffer_tests.py",
+      "sha256": "CD42D66D1C13D1A65637DA39B9E7A84115EA50D63F517FB20FFC78F294097CC1"
+    },
+    {
+      "path": "scripts/install.ps1",
+      "sha256": "F6810CFECA3AE2C29C6B1E92D181480B4E85203D5B1AA24ABF140F78AFFCA571"
+    },
+    {
+      "path": "scripts/optimization_compare.py",
+      "sha256": "6032495A0F794D0FBD69C8663CF2973EF46A1DBA76E4FDC245CAA102DA51DF97"
+    },
+    {
+      "path": "scripts/particle_reference.py",
+      "sha256": "FBA70B8C7CFC2D57BAA6DDFE41928E7A2694C81618BA57BF7A2B7197E911BB2A"
+    },
+    {
+      "path": "scripts/pipl.cmd",
+      "sha256": "4F08066DA3873308AA9094EF61A6716F52E4CA5EBD6E180763493DAABA5248E9"
+    },
+    {
+      "path": "scripts/publish_github.ps1",
+      "sha256": "0CF56603A2B72EC8BFF312CE667BE65DBB489BAD44DAF60BFDDE8CBDB57C9249"
+    },
+    {
+      "path": "scripts/stress_tests.py",
+      "sha256": "E12ECA46AAA86E8FD77A5F7B2566EDF25F2CDB13479A6A650BEF9A865374E780"
+    },
+    {
+      "path": "scripts/verify.ps1",
+      "sha256": "B2FD18DB784BCCC3598346E67AA594055A9896ED0C11C47C559C4C5D7D7463A7"
+    },
+    {
+      "path": "scripts/verify_binary.py",
+      "sha256": "CD29686027D2D4E6BE9B76FEC25B5838AA938557F828D2B4CF7077D87507AB0F"
+    },
+    {
+      "path": "src/adobe/FilmTexturePiPL.r",
+      "sha256": "EBA25EED5DE17B03F7DA5A46A540121F91E888D30C82D6013FDF4B70656E75A3"
+    },
+    {
+      "path": "src/adobe/effect.cpp",
+      "sha256": "80735A187E680BD8C6C21B88487A0B36DA14C423284FD25C9D353B35BE90DC51"
+    },
+    {
+      "path": "src/adobe/parameters.h",
+      "sha256": "294B101505DDC36053A4A71A5C39AC7095D4651996CD6EAD511980F047F3A4B6"
+    },
+    {
+      "path": "src/adobe/premiere_gpu.cpp",
+      "sha256": "C5D58942C8828BF3F6529324D9B592C3F4E4AB9A728E9B9707714456F32B1A6A"
+    },
+    {
+      "path": "src/core/cuda_engine.cpp",
+      "sha256": "8ACBAF3DFAD2A288F0F93AA01C5BBD158A52EF51AB4868D62A1AC5BD36C311D9"
+    },
+    {
+      "path": "src/core/cuda_engine.h",
+      "sha256": "F55AC58C24B740B92D43BA09D5E29CB7185811E1D75A0C883889C34CD06C02F2"
+    },
+    {
+      "path": "src/core/kernels.cu",
+      "sha256": "C18887C5A6D39B7200D989BFFFB27DEEA4CA15515606B63D63156C2467B2EE19"
+    },
+    {
+      "path": "src/core/texture.h",
+      "sha256": "CC46B4991A4AAC7A4207ED44221AC8DA04025F14F69180E3170FD9F2A0EC9CFE"
+    },
+    {
+      "path": "tests/native_adobe.cpp",
+      "sha256": "A1405EC1137CBC8BDDAE9CF61615434A4FDA2DB00837D9DDF9258C807A3184C3"
+    },
+    {
+      "path": "tests/package_installer_tests.ps1",
+      "sha256": "835D7D19C6BFBEBF92A8B11C67455505EE262944CCDB505FEF989034B176330D"
+    }
+  ]
+}

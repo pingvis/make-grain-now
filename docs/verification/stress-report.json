@@ -1,0 +1,27 @@
+{
+  "tests": "passed",
+  "scope": "standalone real-CUDA concurrency and native-buffer tests, not Adobe MFR",
+  "threads": [
+    {
+      "thread_seed": 71,
+      "renders": 54
+    },
+    {
+      "thread_seed": 137,
+      "renders": 54
+    },
+    {
+      "thread_seed": 919,
+      "renders": 54
+    },
+    {
+      "thread_seed": 2461,
+      "renders": 54
+    }
+  ],
+  "total_threaded_renders": 216,
+  "active_roi": "passed",
+  "out_of_source_roi": "passed",
+  "transparent_highlight_exclusion": "passed",
+  "linear_glow_additivity_max_error": 1.1920928955078125e-07
+}

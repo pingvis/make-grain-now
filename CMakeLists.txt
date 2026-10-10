@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.24)
+project(MakeGrainNow LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+set(AE_ROOT "${CMAKE_SOURCE_DIR}/vendor/ae-sdk/AfterEffectsSDK_26.5_win/Examples")
+add_library(texture_core SHARED src/core/cuda_engine.cpp)
+target_compile_definitions(texture_core PRIVATE TEXTURE_EXPORTS)
+target_include_directories(texture_core PUBLIC src/core PRIVATE "${CMAKE_BINARY_DIR}" .deps/nvidia/cuda_runtime/include)
+target_compile_options(texture_core PRIVATE /W4 /EHsc /O2)
+set(PR_ROOT "${CMAKE_SOURCE_DIR}/vendor/pr-sdk/Premiere Pro 26.0 C++ SDK/Examples")
+add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/FilmTexturePiPL.res"
+ COMMAND cmd /c call "${CMAKE_SOURCE_DIR}/scripts/pipl.cmd" "${AE_ROOT}" "${CMAKE_SOURCE_DIR}/src/adobe/FilmTexturePiPL.r" "${CMAKE_BINARY_DIR}/FilmTexturePiPL"
+ DEPENDS src/adobe/FilmTexturePiPL.r scripts/pipl.cmd VERBATIM)
+add_library(MakeGrainNow MODULE src/adobe/effect.cpp src/adobe/premiere_gpu.cpp src/core/cuda_engine.cpp "${CMAKE_BINARY_DIR}/FilmTexturePiPL.res")
+set_target_properties(MakeGrainNow PROPERTIES SUFFIX ".aex" PREFIX "")
+target_compile_definitions(MakeGrainNow PRIVATE TEXTURE_EXPORTS MSWindows WIN32 PRWIN_ENV)
+target_include_directories(MakeGrainNow PRIVATE src/core src/adobe "${CMAKE_BINARY_DIR}" .deps/nvidia/cuda_runtime/include "${AE_ROOT}/Headers" "${AE_ROOT}/Headers/SP" "${AE_ROOT}/Util" "${PR_ROOT}/Headers")
+target_compile_options(MakeGrainNow PRIVATE /W4 /EHsc /O2)
+# Visual Studio treats a .res target source as None; explicitly pass it to LINK.
+target_link_libraries(MakeGrainNow PRIVATE "${CMAKE_BINARY_DIR}/FilmTexturePiPL.res")
+
+add_executable(native_adobe_tests tests/native_adobe.cpp src/core/cuda_engine.cpp)
+target_compile_definitions(native_adobe_tests PRIVATE TEXTURE_EXPORTS MSWindows WIN32 PRWIN_ENV)
+target_include_directories(native_adobe_tests PRIVATE src/core src/adobe "${CMAKE_BINARY_DIR}" .deps/nvidia/cuda_runtime/include "${AE_ROOT}/Headers" "${AE_ROOT}/Headers/SP" "${AE_ROOT}/Util" "${PR_ROOT}/Headers")
+target_compile_options(native_adobe_tests PRIVATE /W4 /EHsc /O2)
